@@ -1,49 +1,42 @@
 %{
 #include <stdio.h>
 
-// TODO Mover a un archivo de cabecera
-#define INICIO 1
-#define FIN 2
-#define LEER 3
-#define ESCRIBIR 4
-#define ASIGNACION 5
-#define PARENIZQUIERDO 6
-#define PARENDERECHO 7
-#define COMA 8
-#define PUNTOYCOMA 9
-#define SUMA 10
-#define RESTA 11
-#define IDENTIFICADOR 12
-#define CONSTANTE 13
+// Extracto del libro de munchnik
+typedef enum {
+    INICIO, FIN, LEER, ESCRIBIR, ID, CONSTANTE, PARENIZQUIERDO,
+    PARENDERECHO, PUNTOYCOMA, COMA, ASIGNACION, SUMA, RESTA, FDT
+} TOKEN;
 
 char *debug(int token);
+
 %}
 
-Identificador     [a-zA-Z][a-zA-Z0-9]*
-Constante         [0-9]+
-
+Identificador    [a-zA-Z][a-zA-Z0-9]*
+Constante        [0-9]+
 %%
 
-"inicio"        { printf("%s\n", debug(INICIO)); }
-"fin"           { printf("%s\n", debug(FIN)); }
-"leer"          { printf("%s\n", debug(LEER)); }
-"escribir"      { printf("%s\n", debug(ESCRIBIR)); }
+"inicio"            { return INICIO; }
+"fin"               { return FIN; }
+"leer"              { return LEER; }
+"escribir"          { return ESCRIBIR; }
 
-"+"             { printf("%s\n", debug(SUMA)); }
-"-"             { printf("%s\n", debug(RESTA)); }
-":="            { printf("%s\n", debug(ASIGNACION)); }
+"+"                 { return SUMA; }
+"-"                 { return RESTA; }
+":="                { return ASIGNACION; }
 
-"("             { printf("%s\n", debug(PARENIZQUIERDO)); }
-")"             { printf("%s\n", debug(PARENDERECHO)); }
-","             { printf("%s\n", debug(COMA)); }
-";"             { printf("%s\n", debug(PUNTOYCOMA)); }
+"("                 { return PARENIZQUIERDO; }
+")"                 { return PARENDERECHO; }
+","                 { return COMA; }
+";"                 { return PUNTOYCOMA; }
 
-{Identificador} { printf("%s\n", debug(IDENTIFICADOR)); }
-{Constante}     { printf("%s\n", debug(CONSTANTE)); }
+{Identificador}     { return ID; }
+{Constante}         { return CONSTANTE; }
 
-[ \t\n]+        { /* Ignorar */ }
+[ \t\n]+            { /* Ignorar */ }
 
-.               { printf("Error léxico: %s\n", yytext); }
+<<EOF>>             { return FDT; }
+
+.                   { printf("Error léxico: %s\n", yytext); }
 
 %%
 
@@ -60,12 +53,16 @@ char *debug(int token) {
         case PUNTOYCOMA: return "PUNTOYCOMA";
         case SUMA: return "SUMA";
         case RESTA: return "RESTA";
-        case IDENTIFICADOR: return "IDENTIFICADOR";
+        case ID: return "IDENTIFICADOR";
         case CONSTANTE: return "CONSTANTE";
+        case FDT: return "FDT";
     }
 }
 
 int main() {
-    yylex();
+    TOKEN token;
+    while((token = yylex()) != FDT) {
+        printf("Token encontrado: %s\n", debug(token));
+    }
     return 0;
 }
