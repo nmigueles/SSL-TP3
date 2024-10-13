@@ -1,5 +1,8 @@
+micro
 out
 *.o
 *.out
 *.exe
 *.yy.c
+*.tab.c
+*.tab.h
