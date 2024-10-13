@@ -1,5 +1,11 @@
 %{
 #include <stdio.h>
+
+void yyerror(char *s);
+int yylex();
+
+char buffer[32];
+int yylexerrs;
 %}
 
 Identificador    [a-zA-Z][a-zA-Z0-9]*
@@ -25,7 +31,7 @@ Constante        [0-9]+
 
 [ \t\n]+            ;
 
-.                   {printf("Error léxico: %s\n", yytext);}
+.                   {yylexerrs++; sprintf(buffer, "Error Lexico: %s\n", yytext); yyerror(buffer);}
 
 %%
 
