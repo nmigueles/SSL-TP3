@@ -1,7 +1,7 @@
 # i wanna execute gcc lex.yy.c -o out -lc -ll && ./out
 # -w suppresses warnings
 build: scanner.l parser.y
-	lex scanner.l && bison -d parser.y && gcc -o micro -lc -ll -w lex.yy.c parser.tab.c
+	bison -yd parser.y && lex scanner.l && gcc -o micro -lc -ll -w lex.yy.c y.tab.c
 run: build
 	echo "Running...\n" && ./micro
 

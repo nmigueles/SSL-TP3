@@ -6,7 +6,7 @@
 #define SIZE_TABLA_SIMBOLOS 100
 
 int yylex();
-void yyerror(char *s);
+int yyerror(const char* msg);
 
 typedef struct {
     char id[32]; // Limitación de 32 caracteres para el identificador
@@ -18,7 +18,10 @@ void guardarIdentificador(char* id, int valor);
 void ingresarIdentificador(char* id);
 
 extern int yynerrs;
+extern int yylineno;
 extern int yylexerrs;
+extern char* yytext;
+
 extern FILE* yyin;
 
 %}
@@ -48,33 +51,57 @@ listaSentencias:
 ;
 
 sentencia:
-       ID ASIGNACION expresion PUNTOYCOMA   {guardarIdentificador($1, $3);}
-    |  leer
-    |  escribir
+        asignacion
+    |   leer
+    |   escribir
+    |   error PUNTOYCOMA {yyerror("Error de sintaxis, sentencia invalida"); YYABORT;}
+;
+
+asignacion:
+      ID ASIGNACION expresion PUNTOYCOMA    {guardarIdentificador($1, $3);}
+    | ID error PUNTOYCOMA                   {yyerror("Error de sintaxis, se esperaba ':='"); YYABORT;}
+    | ID ASIGNACION expresion error         {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
+    | ID ASIGNACION error PUNTOYCOMA        {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
 ;
 
 leer:
-    LEER PARENIZ listaIdentificadores PARENDER PUNTOYCOMA
+      LEER PARENIZ listaIdentificadores PARENDER PUNTOYCOMA
+    | LEER error PUNTOYCOMA                                 {yyerror("Error de sintaxis, se esperaba '('"); YYABORT;}
+    | LEER PARENIZ error PARENDER PUNTOYCOMA                {yyerror("Error de sintaxis, se esperaba una lista de identificadores"); YYABORT;}
+    | LEER PARENIZ listaIdentificadores error PUNTOYCOMA    {yyerror("Error de sintaxis, se esperaba ')'"); YYABORT;}
+    | LEER PARENIZ listaIdentificadores PARENDER error      {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
+
 ;
 
 listaIdentificadores:
        ID                                   {ingresarIdentificador($1);}           
     |  listaIdentificadores COMA ID         {ingresarIdentificador($3);}
+    |  listaIdentificadores COMA error      {yyerror("Error de sintaxis, se esperaba un identificador"); YYABORT;}
 ;
 
 escribir:
-    ESCRIBIR PARENIZ listaExpresiones PARENDER PUNTOYCOMA
+      ESCRIBIR PARENIZ listaExpresiones PARENDER PUNTOYCOMA
+    | ESCRIBIR error listaExpresiones PARENDER PUNTOYCOMA           {yyerror("Error de sintaxis, se esperaba '('"); YYABORT;}
+    | ESCRIBIR PARENIZ error PARENDER PUNTOYCOMA                    {yyerror("Error de sintaxis, se esperaba una lista de expresiones"); YYABORT;}
+    | ESCRIBIR PARENIZ listaExpresiones error PARENDER PUNTOYCOMA   {yyerror("Error de sintaxis, se esperaba ','"); YYABORT;}
+    | ESCRIBIR PARENIZ listaExpresiones error PUNTOYCOMA            {yyerror("Error de sintaxis, se esperaba ')'"); YYABORT;}
+    | ESCRIBIR PARENIZ listaExpresiones PARENDER error              {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
 ;
 
 listaExpresiones:
        expresion                            {printf("%d\n", $1);}
     |  listaExpresiones COMA expresion      {printf("%d\n", $3);}
+    |  listaExpresiones COMA error          {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
 ;
 
 expresion:
        termino                              {$$ = $1;}
     |  expresion SUMA termino               {$$ = $1 + $3;}
-    |  expresion RESTA termino              {$$ = $1 - $3;}                    
+    |  expresion RESTA termino              {$$ = $1 - $3;}                 
+    |  error SUMA termino                   {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
+    |  expresion SUMA error                 {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
+    |  error RESTA termino                  {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
+    |  expresion RESTA error                {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}   
 ;
 
 termino:
@@ -84,9 +111,10 @@ termino:
 
 %%
 
-// Imprimir los errores en STDERR
-void yyerror(char *s) {
-    fprintf(stderr, "%s\n", s);
+
+int yyerror(const char* msg) {
+    fprintf(stderr, "%s en linea %d.\n", msg, yylineno);
+    return 0;
 }
 
 SIMBOLO tablaSimbolos[SIZE_TABLA_SIMBOLOS]; // Tabla de símbolos, con un máximo de 100 símbolos
@@ -166,22 +194,5 @@ int main(int argc, char** argv) {
 
     inicializarTablaSimbolos();
 
-    int result = yyparse();
-
-    // Correr el parser
-    switch (result){
-        case 0: 
-            // Si no hay errores, la compilación fue exitosa. No imprimir nada
-            break;
-        case 1: 
-            // Si hay errores, imprimir el mensaje de error
-            printf("\nSe encontraron errores en la etapa de compilación\n");
-            // TODO MEJORAR LOS MENSAJES DE ERROR INCLUYENDO LA LÍNEA Y EL ERROR
-            // Imprimir la cantidad de errores
-            printf("Errores sintácticos: %i\n", yynerrs);
-            printf("Errores léxicos: %i\n", yylexerrs);
-            break;
-    }
-
-    return 0;
+    return yyparse();
 }
