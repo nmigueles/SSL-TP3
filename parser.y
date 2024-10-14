@@ -1,13 +1,16 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define SIZE_TABLA_SIMBOLOS 100
 
 int yylex();
 void yyerror(char *s);
 
 typedef struct {
     char id[32]; // Limitación de 32 caracteres para el identificador
-    int valor;
+    int cte;
 } SIMBOLO; // Estructura de un símbolo, que es un identificador con su valor
 
 int obtenerValorIdentificador(char* id);
@@ -81,28 +84,68 @@ termino:
 
 %%
 
-int yylexerrs = 0;
-
 // Imprimir los errores en STDERR
 void yyerror(char *s) {
     fprintf(stderr, "%s\n", s);
 }
 
-// TODO Implementar
+SIMBOLO tablaSimbolos[SIZE_TABLA_SIMBOLOS]; // Tabla de símbolos, con un máximo de 100 símbolos
+
+void inicializarTablaSimbolos() {
+    for (int i = 0; i < SIZE_TABLA_SIMBOLOS; i++) {
+        // Inicializar los valores de la tabla de símbolos como -1 para indicar 
+        // que no tienen valor, ya que en micro solo se soportan numeros positivos
+        tablaSimbolos[i].cte = -1; 
+    }
+}
+
+// Guardar un identificador en la tabla de símbolos
 void guardarIdentificador(char* id, int valor) {
-    printf("Guardando %s con valor %d\n", id, valor);
+    // Buscar el identificador en la tabla de símbolos
+    for (int i = 0; i < SIZE_TABLA_SIMBOLOS; i++) {
+        if (tablaSimbolos[i].id == id) {
+            // Si se encuentra el identificador, actualizar su valor
+            tablaSimbolos[i].cte = valor;
+            return;
+        }
+    }
+
+    // Si no se encontró el identificador, guardarlo en la tabla de símbolos
+    for (int i = 0; i < SIZE_TABLA_SIMBOLOS; i++) {
+        // Busco el primer espacio vacío en la tabla de símbolos (valor == -1)
+        if (tablaSimbolos[i].cte == -1) {
+            tablaSimbolos[i].id = strdup(id);
+            tablaSimbolos[i].cte = valor;
+            return;
+        }
+    }
+
+    // Si no hay espacio en la tabla de símbolos, imprimir un error
+    yyerror("No hay espacio en la tabla de símbolos");
 }
 
-// TODO Implementar
+// Obtener el valor de un identificador en la tabla de símbolos
 int obtenerValorIdentificador(char* id) {
-    printf("Obteniendo valor de %s\n", id);
-    return 0;
+    // Buscar el identificador en la tabla de símbolos
+    for (int i = 0; i < SIZE_TABLA_SIMBOLOS; i++) {
+        if (tablaSimbolos[i].id == id) {
+            return tablaSimbolos[i].cte;
+        }
+    }
 }
 
-// TODO Implementar
+// Ingresar por STDIN un valor para un identificador
 void ingresarIdentificador(char* id) {
-    printf("Ingresando en %s\n", id);
+    char userInput[128];
+
+    printf("Ingresa el valor de %s: ", id);
+    fscanf(stdin, "%s", userInput);
+
+    // TODO Validar que el valor ingresado sea un número
+    guardarIdentificador(id, atoi(userInput));
 }
+
+int yylexerrs = 0;
 
 int main(int argc, char** argv) {
     // Verificar el mal uso del binario
@@ -119,6 +162,8 @@ int main(int argc, char** argv) {
         // echo "inicio leer a, b; escribir a + b;" | ./micro
         yyin = stdin;
     }
+
+    inicializarTablaSimbolos();
 
     int result = yyparse();
 
