@@ -114,7 +114,7 @@ void guardarIdentificador(char* id, int valor) {
     for (int i = 0; i < SIZE_TABLA_SIMBOLOS; i++) {
         // Busco el primer espacio vacío en la tabla de símbolos (valor == -1)
         if (tablaSimbolos[i].cte == -1) {
-            tablaSimbolos[i].id = strdup(id);
+            sprintf(tablaSimbolos[i].id, "%s", id);
             tablaSimbolos[i].cte = valor;
             return;
         }
@@ -122,13 +122,14 @@ void guardarIdentificador(char* id, int valor) {
 
     // Si no hay espacio en la tabla de símbolos, imprimir un error
     yyerror("No hay espacio en la tabla de símbolos");
+    exit(1);
 }
 
 // Obtener el valor de un identificador en la tabla de símbolos
 int obtenerValorIdentificador(char* id) {
     // Buscar el identificador en la tabla de símbolos
     for (int i = 0; i < SIZE_TABLA_SIMBOLOS; i++) {
-        if (tablaSimbolos[i].id == id) {
+        if (!strcmp(tablaSimbolos[i].id, id)) { // Si se encuentra el identificador
             return tablaSimbolos[i].cte;
         }
     }
@@ -136,7 +137,7 @@ int obtenerValorIdentificador(char* id) {
 
 // Ingresar por STDIN un valor para un identificador
 void ingresarIdentificador(char* id) {
-    char userInput[128];
+    char userInput[32];
 
     printf("Ingresa el valor de %s: ", id);
     fscanf(stdin, "%s", userInput);
