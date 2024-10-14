@@ -80,7 +80,7 @@ expresion:
 termino:
        ID                                   {$$ = obtenerValorIdentificador($1);}
     |  CONSTANTE                            {$$ = $1;}
-    |  PARENIZ expresion PARENDER{$$ = $2;}
+    |  PARENIZ expresion PARENDER           {$$ = $2;}
 
 %%
 
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
             break;
         case 1: 
             // Si hay errores, imprimir el mensaje de error
-            printf("\nSe encontraron errores en la estapa de compilación\n");
+            printf("\nSe encontraron errores en la etapa de compilación\n");
             // TODO MEJORAR LOS MENSAJES DE ERROR INCLUYENDO LA LÍNEA Y EL ERROR
             // Imprimir la cantidad de errores
             printf("Errores sintácticos: %i\n", yynerrs);

@@ -34,7 +34,7 @@ Constante        [0-9]+
 
 [ \t\n]+            ; // Ignorar whitespace
 
-.                   {yylexerrs++; sprintf(errorBuffer, "Error Lexico: %s\n", yytext); yyerror(errorBuffer);}
+.                   {yylexerrs++;sprintf(errorBuffer, "Error Lexico: %s\n", yytext); yyerror(errorBuffer);}
 
 %%
 
