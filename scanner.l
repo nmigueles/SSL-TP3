@@ -15,12 +15,14 @@ void reportError(const char* message);
 
 Identificador    [a-zA-Z][a-zA-Z0-9]*
 Constante        [0-9]+
+Comentario       "//".*
 %%
 
 "inicio"            return INICIO;
 "fin"               return FIN;
 "leer"              return LEER;
 "escribir"          return ESCRIBIR;
+"random"            return RANDOM;
 
 ":="                return ASIGNACION;
 
@@ -35,8 +37,10 @@ Constante        [0-9]+
 {Identificador}     {yylval.id = strdup(yytext); return ID;}
 {Constante}         {yylval.cte = atoi(yytext); return CONSTANTE;}
 
-[ \t]           { yycolumno += yyleng; } /* Incrementa columnas */
-\n              { yylineno++; yycolumno = 1; } /* Nueva línea, reset columna */
+{Comentario}        /* Ignorar comentarios */
+
+[ \t]               { yycolumno += yyleng; } /* Incrementa columnas */
+\n                  { yylineno++; yycolumno = 1; } /* Nueva línea, reset columna */
 
 
 <<EOF>>             return 0;

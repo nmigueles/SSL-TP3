@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define SIZE_TABLA_SIMBOLOS 100
 
@@ -26,7 +27,7 @@ extern FILE* yyin;
 
 %}
 
-%token INICIO FIN LEER ESCRIBIR PUNTOYCOMA PARENIZ PARENDER
+%token INICIO FIN LEER ESCRIBIR PUNTOYCOMA PARENIZ PARENDER RANDOM
 %left SUMA RESTA COMA
 %right ASIGNACION
 
@@ -42,19 +43,19 @@ extern FILE* yyin;
 %%
 
 programa:
-       INICIO listaSentencias FIN       {if (yynerrs || yylexerrs) YYABORT; return 0;}
-; 
+    INICIO listaSentencias FIN       {if (yynerrs || yylexerrs) YYABORT; return 0;}
+;
 
 listaSentencias:
-       sentencia
-    |  listaSentencias sentencia
+      sentencia
+    | listaSentencias sentencia
 ;
 
 sentencia:
-        asignacion
-    |   leer
-    |   escribir
-    |   error PUNTOYCOMA {yyerror("Error de sintaxis, sentencia invalida"); YYABORT;}
+      asignacion
+    | leer
+    | escribir
+    | error PUNTOYCOMA {yyerror("Error de sintaxis, sentencia invalida"); YYABORT;}
 ;
 
 asignacion:
@@ -95,13 +96,14 @@ listaExpresiones:
 ;
 
 expresion:
-       termino                              {$$ = $1;}
-    |  expresion SUMA termino               {$$ = $1 + $3;}
-    |  expresion RESTA termino              {$$ = $1 - $3;}                 
-    |  error SUMA termino                   {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
-    |  expresion SUMA error                 {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
-    |  error RESTA termino                  {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
-    |  expresion RESTA error                {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}   
+       termino                                      {$$ = $1;}
+    |  expresion SUMA termino                       {$$ = $1 + $3;}
+    |  expresion RESTA termino                      {$$ = $1 - $3;}
+    |  RANDOM PARENIZ termino COMA termino PARENDER {$$ = $3 + rand() % ($5 - $3 + 1);}
+    |  error SUMA termino                           {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
+    |  expresion SUMA error                         {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
+    |  error RESTA termino                          {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
+    |  expresion RESTA error                        {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}   
 ;
 
 termino:
@@ -177,6 +179,9 @@ void ingresarIdentificador(char* id) {
 int yylexerrs = 0;
 
 int main(int argc, char** argv) {
+    // Inicializar la semilla para la función rand() en base al tiempo
+    srand(time(0));
+
     // Verificar el mal uso del binario
     if (argc > 2){
         printf("Uso: micro <archivo>\n");
