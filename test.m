@@ -2,8 +2,7 @@
 inicio
     leer (a, b);
     cc := a + (b - 2);
-    // leer (c); Pero no se ejecuta
-    escribir (cc, 2 + 4); // Comentario de una linea al final del codigo
+    escribir ("Imprime cc:, cc);
     r := random(a, b);
-    escribir (r);
+    escribir ("Imprime r:", r);
 fin

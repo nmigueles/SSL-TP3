@@ -27,23 +27,27 @@ extern FILE* yyin;
 
 %}
 
-%token INICIO FIN LEER ESCRIBIR PUNTOYCOMA PARENIZ PARENDER RANDOM
+%token INICIO FIN LEER ESCRIBIR PUNTOYCOMA PARENIZ PARENDER RANDOM COMILLADOBLE
 %left SUMA RESTA COMA
 %right ASIGNACION
 
 %token <id> ID
 %token <cte> CONSTANTE
+%token <cadena> CADENA
+
 %union {
     char* id;
     int cte;
+    char* cadena;
 }
 
 %type <cte> expresion termino
+%type <cadena> cadena
 
 %%
 
 programa:
-    INICIO listaSentencias FIN       {if (yynerrs || yylexerrs) YYABORT; return 0;}
+    INICIO listaSentencias FIN              {if (yynerrs || yylexerrs) YYABORT; return 0;}
 ;
 
 listaSentencias:
@@ -55,7 +59,7 @@ sentencia:
       asignacion
     | leer
     | escribir
-    | error PUNTOYCOMA {yyerror("Error de sintaxis, sentencia invalida"); YYABORT;}
+    | error PUNTOYCOMA                      {yyerror("Error de sintaxis, sentencia invalida"); YYABORT;}
 ;
 
 asignacion:
@@ -89,11 +93,22 @@ escribir:
     | ESCRIBIR PARENIZ listaExpresiones PARENDER error              {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
 ;
 
+// listaExpresionesOCadenas:
+//       listaExpresiones
+//     | listaCadenas
+
 listaExpresiones:
        expresion                            {printf("%d\n", $1);}
+    |  cadena                               {printf("%s\n", $1);}
     |  listaExpresiones COMA expresion      {printf("%d\n", $3);}
+    |  listaExpresiones COMA cadena         {printf("%s\n", $3);}
     |  listaExpresiones COMA error          {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
 ;
+
+// listaCadenas:
+//       cadena                                {printf("%s\n", $1);}
+//     | listaCadenas COMA cadena              {printf("%s\n", $3);}
+//     | listaCadenas COMA error               {yyerror("Error de sintaxis, se esperaba una cadena"); YYABORT;}
 
 expresion:
        termino                                      {$$ = $1;}
@@ -111,6 +126,8 @@ termino:
     |  CONSTANTE                            {$$ = $1;}
     |  PARENIZ expresion PARENDER           {$$ = $2;}
 
+cadena:
+    CADENA                                  {$$ = $1;}
 %%
 
 

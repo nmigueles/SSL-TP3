@@ -15,6 +15,7 @@ void reportError(const char* message);
 
 Identificador    [a-zA-Z][a-zA-Z0-9]*
 Constante        [0-9]+
+Cadena           \"([^\"]*)\"
 Comentario       "//".*
 %%
 
@@ -36,6 +37,11 @@ Comentario       "//".*
 
 {Identificador}     {yylval.id = strdup(yytext); return ID;}
 {Constante}         {yylval.cte = atoi(yytext); return CONSTANTE;}
+{Cadena}            {
+                        int length = strlen(yytext);
+                        yylval.cadena = strndup(yytext + 1, length - 2);
+                        return CADENA;
+                    }
 
 {Comentario}        /* Ignorar comentarios */
 
@@ -45,7 +51,7 @@ Comentario       "//".*
 
 <<EOF>>             return 0;
 
-.               { reportError("Error léxico"); }
+.                   { reportError("Error léxico"); }
 
 %%
 
