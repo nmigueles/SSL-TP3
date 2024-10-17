@@ -93,10 +93,6 @@ escribir:
     | ESCRIBIR PARENIZ listaExpresiones PARENDER error              {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
 ;
 
-// listaExpresionesOCadenas:
-//       listaExpresiones
-//     | listaCadenas
-
 listaExpresiones:
        expresion                            {printf("%d\n", $1);}
     |  cadena                               {printf("%s\n", $1);}
@@ -104,11 +100,6 @@ listaExpresiones:
     |  listaExpresiones COMA cadena         {printf("%s\n", $3);}
     |  listaExpresiones COMA error          {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
 ;
-
-// listaCadenas:
-//       cadena                                {printf("%s\n", $1);}
-//     | listaCadenas COMA cadena              {printf("%s\n", $3);}
-//     | listaCadenas COMA error               {yyerror("Error de sintaxis, se esperaba una cadena"); YYABORT;}
 
 expresion:
        termino                                      {$$ = $1;}
