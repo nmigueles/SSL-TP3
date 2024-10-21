@@ -60,6 +60,7 @@ void reportError(const char* message) {
     yylexerrs++;
     fprintf(stderr, "Error: %s en línea %d, columna %d: %s\n", message, yylineno, yycolumno, yytext);
     yycolumno += yyleng; /* Ajustar la posición de la columna */
+    exit(1);
 }
 
 int yywrap(void) {
