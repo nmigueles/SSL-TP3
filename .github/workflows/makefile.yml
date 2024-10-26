@@ -22,6 +22,8 @@ jobs:
       run: make
 
   release:
+    runs-on: ubuntu-latest
+
     needs: build
 
     steps:
@@ -29,12 +31,12 @@ jobs:
 
     # Build for macOS
     - name: Build executable for macOS
-      run: make CC=gcc TARGET=myapp-macos
+      run: make TARGET=myapp-macos
       # Assuming 'make TARGET=myapp-macos' outputs 'myapp-macos' binary
 
     # Build for Windows
     - name: Build executable for Windows
-      run: make CC=gcc TARGET=myapp-windows.exe
+      run: make TARGET=myapp-windows.exe
       # Assuming 'make TARGET=myapp-windows.exe' outputs 'myapp-windows.exe' binary
 
     # Create a new release and upload artifacts
