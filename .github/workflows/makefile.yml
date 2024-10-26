@@ -29,13 +29,11 @@ jobs:
 
     # Build for macOS
     - name: Build executable for macOS
-      runs-on: macos-latest
       run: make CC=gcc TARGET=myapp-macos
       # Assuming 'make TARGET=myapp-macos' outputs 'myapp-macos' binary
 
     # Build for Windows
     - name: Build executable for Windows
-      runs-on: windows-latest
       run: make CC=gcc TARGET=myapp-windows.exe
       # Assuming 'make TARGET=myapp-windows.exe' outputs 'myapp-windows.exe' binary
 
