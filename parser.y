@@ -2,28 +2,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 
-#define SIZE_TABLA_SIMBOLOS 100
+extern void yyerror(char*);
+extern FILE* yyin;
+extern int yynerrs;
+extern int yylineno;
+extern int yylexerrs;
+extern char *yytext;
+extern int yyleng;
+extern int yylex(void);
 
-int yylex();
-int yyerror(const char* msg);
+
+#define SIZE_TABLA_SIMBOLOS 100 // Cantidad máxima de símbolos soportada
+#define SIZE_IDENTIFICADOR 32 // Tamaño máximo de un identificador
 
 typedef struct {
-    char id[32]; // Limitación de 32 caracteres para el identificador
+    char id[SIZE_IDENTIFICADOR]; // Limitación de 32 caracteres para el identificador
     int cte;
 } SIMBOLO; // Estructura de un símbolo, que es un identificador con su valor
 
 int obtenerValorIdentificador(char* id);
 void guardarIdentificador(char* id, int valor);
 void ingresarIdentificador(char* id);
-
-extern int yynerrs;
-extern int yylineno;
-extern int yylexerrs;
-extern char* yytext;
-
-extern FILE* yyin;
 
 %}
 
@@ -63,7 +65,7 @@ sentencia:
 ;
 
 asignacion:
-      ID ASIGNACION expresion PUNTOYCOMA    {guardarIdentificador($1, $3);}
+      ID ASIGNACION expresion PUNTOYCOMA    {if(yyleng > SIZE_IDENTIFICADOR) yyerror("Error de sintaxis, se supero el tamaño máximo para el identificador"); guardarIdentificador($1, $3);}
     | ID error PUNTOYCOMA                   {yyerror("Error de sintaxis, se esperaba ':='"); YYABORT;}
     | ID ASIGNACION expresion error         {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
     | ID ASIGNACION error PUNTOYCOMA        {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
@@ -122,10 +124,13 @@ cadena:
 %%
 
 
-int yyerror(const char* msg) {
+void yyerror(char* msg) {
     fprintf(stderr, "%s en linea %d.\n", msg, yylineno);
-    return 0;
 }
+
+int yywrap()  {
+  return 1;  
+} 
 
 SIMBOLO tablaSimbolos[SIZE_TABLA_SIMBOLOS]; // Tabla de símbolos, con un máximo de 100 símbolos
 
@@ -173,6 +178,15 @@ int obtenerValorIdentificador(char* id) {
     }
 }
 
+int noEsNumero(char* str) {
+    for (int i = 0; i < strlen(str); i++) {
+        if (!isdigit(str[i])) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // Ingresar por STDIN un valor para un identificador
 void ingresarIdentificador(char* id) {
     char userInput[32];
@@ -180,7 +194,12 @@ void ingresarIdentificador(char* id) {
     printf("Ingresa el valor de %s: ", id);
     fscanf(stdin, "%s", userInput);
 
-    // TODO Validar que el valor ingresado sea un número
+    if (noEsNumero(userInput)) {
+        char* msg;
+        sprintf(msg, "Runtime Error: el valor ingresado para %s no es un número", id);
+        yyerror(msg);
+        exit(1);
+    }
     guardarIdentificador(id, atoi(userInput));
 }
 
@@ -201,7 +220,7 @@ int main(int argc, char** argv) {
         yyin = fopen(argv[1], "r");
     } else {
         // Tomar desde la stdin
-        // echo "inicio leer a, b; escribir a + b;" | ./micro
+        // Ej: echo "inicio leer a, b; escribir a + b;" | ./micro
         yyin = stdin;
     }
 
