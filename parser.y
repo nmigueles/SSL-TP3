@@ -29,9 +29,8 @@ void ingresarIdentificador(char* id);
 
 %}
 
-%token INICIO FIN LEER ESCRIBIR PUNTOYCOMA PARENIZ PARENDER RANDOM COMILLADOBLE
-%left SUMA RESTA COMA
-%right ASIGNACION
+%token INICIO FIN LEER ESCRIBIR COMA PUNTOYCOMA PARENIZ PARENDER RANDOM COMILLADOBLE ASIGNACION
+%left SUMA RESTA
 
 %token <id> ID
 %token <cte> CONSTANTE
@@ -65,7 +64,7 @@ sentencia:
 ;
 
 asignacion:
-      ID ASIGNACION expresion PUNTOYCOMA    {if(yyleng > SIZE_IDENTIFICADOR) yyerror("Error de sintaxis, se supero el tamaño máximo para el identificador"); guardarIdentificador($1, $3);}
+      ID ASIGNACION expresion PUNTOYCOMA    {guardarIdentificador($1, $3);}
     | ID error PUNTOYCOMA                   {yyerror("Error de sintaxis, se esperaba ':='"); YYABORT;}
     | ID ASIGNACION expresion error         {yyerror("Error de sintaxis, se esperaba ';'"); YYABORT;}
     | ID ASIGNACION error PUNTOYCOMA        {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
@@ -81,9 +80,13 @@ leer:
 ;
 
 listaIdentificadores:
-       ID                                   {ingresarIdentificador($1);}           
-    |  listaIdentificadores COMA ID         {ingresarIdentificador($3);}
-    |  listaIdentificadores COMA error      {yyerror("Error de sintaxis, se esperaba un identificador"); YYABORT;}
+       identificador
+    |  listaIdentificadores COMA identificador
+    |  listaIdentificadores COMA error                      {yyerror("Error de sintaxis, se esperaba un identificador"); YYABORT;}
+;
+
+identificador:
+    ID                                                      {if(yyleng > SIZE_IDENTIFICADOR) yyerror("Error de sintaxis, se supero el tamaño máximo para el identificador"); ingresarIdentificador($1);}
 ;
 
 escribir:
@@ -118,14 +121,17 @@ termino:
        ID                                   {$$ = obtenerValorIdentificador($1);}
     |  CONSTANTE                            {$$ = $1;}
     |  PARENIZ expresion PARENDER           {$$ = $2;}
+;
 
 cadena:
     CADENA                                  {$$ = $1;}
+;
 %%
 
 
 void yyerror(char* msg) {
     fprintf(stderr, "%s en linea %d.\n", msg, yylineno);
+    exit(1);
 }
 
 int yywrap()  {
