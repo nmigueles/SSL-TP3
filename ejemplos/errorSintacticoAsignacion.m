@@ -1,6 +1,6 @@
 // Comentario de una linea
 inicio
-    // Error semantico: a es un identificador, 
+    // Error sintactico: a es un identificador, 
     // por lo que se entiende que quiere asignarle un valor
-    a :=;
+    a;
 fin

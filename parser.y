@@ -131,7 +131,6 @@ cadena:
 
 void yyerror(char* msg) {
     fprintf(stderr, "%s en linea %d.\n", msg, yylineno);
-    exit(1);
 }
 
 int yywrap()  {
@@ -182,6 +181,10 @@ int obtenerValorIdentificador(char* id) {
             return tablaSimbolos[i].cte;
         }
     }
+
+    // Si no se encuentra el identificador, imprimir un error
+    yyerror("Uso de identificador no inicializado");
+    exit(1);
 }
 
 int noEsNumero(char* str) {
