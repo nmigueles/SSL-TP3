@@ -26,6 +26,7 @@ typedef struct {
 int obtenerValorIdentificador(char* id);
 void guardarIdentificador(char* id, int valor);
 void ingresarIdentificador(char* id);
+int randomEntre(int min, int max);
 
 %}
 
@@ -110,7 +111,7 @@ expresion:
        termino                                      {$$ = $1;}
     |  expresion SUMA termino                       {$$ = $1 + $3;}
     |  expresion RESTA termino                      {$$ = $1 - $3;}
-    |  RANDOM PARENIZ termino COMA termino PARENDER {$$ = $3 + rand() % ($5 - $3 + 1);}
+    |  RANDOM PARENIZ termino COMA termino PARENDER {$$ = randomEntre($3, $5);}
     |  error SUMA termino                           {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
     |  expresion SUMA error                         {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
     |  error RESTA termino                          {yyerror("Error de sintaxis, se esperaba una expresion"); YYABORT;}
@@ -210,6 +211,10 @@ void ingresarIdentificador(char* id) {
         exit(1);
     }
     guardarIdentificador(id, atoi(userInput));
+}
+
+int randomEntre(int min, int max) {
+    return min + rand() % (max - min + 1);
 }
 
 int yylexerrs = 0;
